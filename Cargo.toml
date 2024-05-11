@@ -3,7 +3,7 @@ name = "lunar-logger"
 version = "0.1.0"
 edition = "2021"
 repository = "https://github.com/Ciubix8513/lunar-logger"
-license = "mit"
+license = "MIT"
 description = "Simple logger with write to file functionality"
 readme = "Readme.md"
 
