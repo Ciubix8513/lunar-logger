@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-///Builder struct for easier `Logger` creation
+///Builder struct for easier [Logger](crate::Logger) creation
 ///
 ///Example:
 ///
@@ -87,11 +87,11 @@ impl Builder {
         self
     }
 
-    ///Crates the `Logger` from the builder
+    ///Crates the [Logger](crate::Logger) from the builder
     ///
     ///# Panics
     ///
-    ///Will panic if the log file name is not a valid filename
+    ///Will panic if the log filename is not a valid filename
     #[must_use]
     pub fn create(self) -> super::Logger {
         let mut logger = crate::Logger::new();
