@@ -114,4 +114,17 @@ impl Builder {
 
         logger
     }
+
+    ///Creates the logger and sets it to be the logger of the program
+    ///
+    ///# Errors
+    ///
+    ///see [enable_logger](crate::Logger::enable_logger)
+    ///
+    ///# Panics
+    ///
+    ///Will panic if the log filename is not a valid filename
+    pub fn init(self) -> Result<(), crate::LoggerError> {
+        self.create().enable_logger()
+    }
 }
