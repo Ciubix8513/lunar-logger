@@ -82,11 +82,9 @@ impl Logger {
     /// # Errors
     ///
     /// returns an error if a logger is already in use or if failed to create a log file
-    pub fn enable_logger(self) -> Result<(), LoggerError> {
-        let mut logger = self;
-
-        if logger.log_to_file {
-            if let Err(e) = create_file(&logger.log_filename) {
+    pub fn enable_logger(mut self) -> Result<(), LoggerError> {
+        if self.log_to_file {
+            if let Err(e) = create_file(&self.log_filename) {
                 return Err(LoggerError::FileError(e));
             }
 
@@ -94,14 +92,14 @@ impl Logger {
                 .write(true)
                 .create(true)
                 .truncate(false)
-                .open(&logger.log_filename)
+                .open(&self.log_filename)
             {
-                Ok(f) => logger.log_file = Some(RwLock::new(f)),
+                Ok(f) => self.log_file = Some(RwLock::new(f)),
                 Err(e) => return Err(LoggerError::FileError(e)),
             }
         }
 
-        if INTERNAL_LOGGER.set(Arc::new(logger)).is_err() {
+        if INTERNAL_LOGGER.set(Arc::new(self)).is_err() {
             return Err(LoggerError::LoggerAlreadySet);
         }
         let Some(logger) = INTERNAL_LOGGER.get() else {
