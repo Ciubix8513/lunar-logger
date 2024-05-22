@@ -99,6 +99,17 @@ impl Logger {
             }
         }
 
+        //Figure out the max level
+        let max_level = self
+            .filters
+            .iter()
+            .map(|i| i.2)
+            .max()
+            .unwrap_or(self.default_level)
+            .max(self.default_level);
+
+        log::set_max_level(max_level);
+
         if INTERNAL_LOGGER.set(Arc::new(self)).is_err() {
             return Err(LoggerError::LoggerAlreadySet);
         }
