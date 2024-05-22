@@ -96,6 +96,8 @@ impl Builder {
     pub fn create(self) -> super::Logger {
         let mut logger = crate::Logger::new();
 
+        logger.set_default_filter(self.default_level);
+
         for (name, level) in self.crate_filters {
             logger.add_filter(&name, crate::FilterType::Crate, level);
         }
