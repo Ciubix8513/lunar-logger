@@ -7,16 +7,14 @@ itself.
 
 ## Usage:
 
-```rs
-use lunar_logging::*;
+ ```rs
+    use lunar_logger::Logger;
 
-fn main() {
-    let logger = Logger::new();
+    let mut logger = Logger::new();
 
-    logger.add_filter("wgpu", FilterType::Crate, log::LevelFilter::Warn);
+    logger.add_filter("wgpu", lunar_logger::FilterType::Crate, log::LevelFilter::Warn);
     logger.set_default_filter(log::LevelFilter::Info);
-    logger.set_logger();
+    logger.enable_logger();
 
     log::info!("It works!");
-}
-```
+ ```
