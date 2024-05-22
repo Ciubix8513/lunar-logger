@@ -1,6 +1,6 @@
 [package]
 name = "lunar-logger"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 repository = "https://github.com/Ciubix8513/lunar-logger"
 license = "MIT"
