@@ -46,6 +46,7 @@ pub struct Logger {
     default_level: log::LevelFilter,
     time_format: String,
     log_file: Option<RwLock<std::fs::File>>,
+    use_color: bool,
 }
 
 ///Types of filter that can be added
@@ -74,6 +75,7 @@ impl Logger {
             default_level: log::LevelFilter::Info,
             time_format: "%Y-%m-%d %H:%M:%S".into(),
             log_file: None,
+            use_color: true,
         }
     }
 
@@ -162,6 +164,11 @@ impl Logger {
     ///Sets the default logging level, that filters everything that does not have a dedicated filter
     pub fn set_default_filter(&mut self, level: log::LevelFilter) {
         self.default_level = level;
+    }
+
+    ///Sets the logger will use color when logging
+    pub fn use_color(&mut self, value: bool) {
+        self.use_color = value;
     }
 }
 
@@ -265,9 +272,13 @@ impl log::Log for Logger {
         let color = get_color(msg_level);
         let msg_level = format_level(msg_level);
 
-        let output = format!(
-            "\x1b[90m[\x1b[0m{time} {color}{msg_level} \x1b[0m{target}\x1b[90m]\x1b[0m {msg}\n"
-        );
+        let output = if self.use_color {
+            format!(
+                "\x1b[90m[\x1b[0m{time} {color}{msg_level} \x1b[0m{target}\x1b[90m]\x1b[0m {msg}\n"
+            )
+        } else {
+            format!("[{time} {msg_level} {target}] {msg}\n")
+        };
 
         if let Some(f) = &self.log_file {
             if let Err(e) = f.write().unwrap().write(output.as_bytes()) {

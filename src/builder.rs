@@ -23,6 +23,7 @@ pub struct Builder {
     log_to_file: bool,
     log_filename: Option<PathBuf>,
     time_format: String,
+    use_color: bool,
 }
 
 impl Default for Builder {
@@ -42,6 +43,7 @@ impl Builder {
             log_to_file: false,
             log_filename: None,
             time_format: String::new(),
+            use_color: true,
         }
     }
 
@@ -87,6 +89,15 @@ impl Builder {
         self
     }
 
+    ///Sets whether the logger will use color
+    ///
+    ///Default is true
+    #[must_use]
+    pub fn use_color(mut self, value: bool) -> Self {
+        self.use_color = value;
+        self
+    }
+
     ///Crates the [Logger](crate::Logger) from the builder
     ///
     ///# Panics
@@ -95,6 +106,7 @@ impl Builder {
     #[must_use]
     pub fn create(self) -> super::Logger {
         let mut logger = crate::Logger::new();
+        logger.use_color = self.use_color;
 
         logger.set_default_filter(self.default_level);
 
