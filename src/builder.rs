@@ -35,7 +35,7 @@ impl Default for Builder {
 impl Builder {
     ///Creates a new builder
     #[must_use]
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self {
             crate_filters: Vec::new(),
             mod_filters: Vec::new(),
@@ -93,7 +93,7 @@ impl Builder {
     ///
     ///Default is true
     #[must_use]
-    pub fn use_color(mut self, value: bool) -> Self {
+    pub const fn use_color(mut self, value: bool) -> Self {
         self.use_color = value;
         self
     }
@@ -106,7 +106,12 @@ impl Builder {
     #[must_use]
     pub fn create(self) -> super::Logger {
         let mut logger = crate::Logger::new();
-        logger.use_color = self.use_color;
+
+        //100 disable color on wasm
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            logger.use_color = self.use_color;
+        }
 
         logger.set_default_filter(self.default_level);
 
@@ -116,14 +121,17 @@ impl Builder {
         for (name, level) in self.mod_filters {
             logger.add_filter(&name, crate::FilterType::Module, level);
         }
-        logger.set_timestamp_format(&self.time_format);
+
+        if !self.time_format.is_empty() {
+            logger.set_timestamp_format(&self.time_format);
+        }
 
         if self.log_to_file {
             logger.set_log_to_file();
-        }
 
-        if let Some(f) = self.log_filename {
-            logger.set_log_file_name(&f).unwrap();
+            if let Some(f) = self.log_filename {
+                logger.set_log_file_name(&f).unwrap();
+            }
         }
 
         logger
@@ -133,7 +141,7 @@ impl Builder {
     ///
     ///# Errors
     ///
-    ///see [enable_logger](crate::Logger::enable_logger)
+    ///see [`enable_logger`](crate::Logger::enable_logger)
     ///
     ///# Panics
     ///

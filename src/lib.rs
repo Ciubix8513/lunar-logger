@@ -18,6 +18,7 @@
 //!
 //!log::info!("It works!");
 //! ```
+#![allow(unused)]
 mod builder;
 
 pub use builder::Builder;
@@ -66,6 +67,7 @@ impl Default for Logger {
 
 impl Logger {
     ///Crates a new `Logger`
+    #[cfg(not(target_arch = "wasm32"))]
     #[must_use]
     pub fn new() -> Self {
         Self {
@@ -79,12 +81,28 @@ impl Logger {
         }
     }
 
+    #[cfg(target_arch = "wasm32")]
+    #[must_use]
+    pub fn new() -> Self {
+        Self {
+            filters: Vec::new(),
+            log_to_file: false,
+            log_filename: PathBuf::new(),
+            default_level: log::LevelFilter::Info,
+            time_format: "%Y-%m-%d %H:%M:%S".into(),
+            log_file: None,
+            use_color: false,
+        }
+    }
+
     ///Consumes the logger and sets it as the program logger
     ///
     /// # Errors
     ///
     /// returns an error if a logger is already in use or if failed to create a log file
     pub fn enable_logger(mut self) -> Result<(), LoggerError> {
+        //Disable file logging on the web
+        #[cfg(not(target_arch = "wasm32"))]
         if self.log_to_file {
             if let Err(e) = create_file(&self.log_filename) {
                 return Err(LoggerError::FileError(e));
@@ -270,14 +288,18 @@ impl log::Log for Logger {
 
         let time = get_time(&self.time_format);
         let color = get_color(msg_level);
-        let msg_level = format_level(msg_level);
+        let msg_level_str = format_level(msg_level);
 
         let output = if self.use_color {
             format!(
-                "\x1b[90m[\x1b[0m{time} {color}{msg_level} \x1b[0m{target}\x1b[90m]\x1b[0m {msg}\n"
+                "\x1b[90m[\x1b[0m{time} {color}{msg_level_str} \x1b[0m{target}\x1b[90m]\x1b[0m {msg}\n"
             )
         } else {
-            format!("[{time} {msg_level} {target}] {msg}\n")
+            if !cfg!(target_arch = "wasm32") {
+                format!("[{time} {msg_level_str} {target}] {msg}\n")
+            } else {
+                format!("[{time} {target}] {msg}\n")
+            }
         };
 
         if let Some(f) = &self.log_file {
@@ -286,6 +308,21 @@ impl log::Log for Logger {
             }
         }
 
+        #[cfg(target_arch = "wasm32")]
+        {
+            use wasm_bindgen::JsValue;
+            use web_sys::console;
+
+            match msg_level {
+                log::LevelFilter::Off => {}
+                log::LevelFilter::Error => console::error_1(&JsValue::from_str(&output)),
+                log::LevelFilter::Warn => console::warn_1(&JsValue::from_str(&output)),
+                log::LevelFilter::Info => console::log_1(&JsValue::from_str(&output)),
+                log::LevelFilter::Debug => console::debug_1(&JsValue::from_str(&output)),
+                log::LevelFilter::Trace => console::trace_1(&JsValue::from_str(&output)),
+            }
+        }
+        #[cfg(not(target_arch = "wasm32"))]
         print!("{output}");
     }
 

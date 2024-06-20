@@ -3,7 +3,7 @@
 Simple logger, that can.. well... log stuff, both to console and to a file.
 
 Works mostly like env_logger, except configured entirely from code and can write to files by
-itself.
+itself. Also supports logging on wasm.
 
 ## Usage:
 
