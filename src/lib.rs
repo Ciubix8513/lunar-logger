@@ -207,9 +207,22 @@ fn generate_log_name() -> PathBuf {
     //ISO-8601 time
     let time = get_time("%Y-%m-%dT%H:%M:%S");
     //TODO Think about windows
-    let user = std::env::vars().find(|i| i.0 == "USER").unwrap().1;
 
-    format!("/home/{user}/.local/share/lunar-logging/log-{time}.log").into()
+    let base_dir = if cfg!(target_os = "linux") {
+        if let Some((_, data)) = std::env::vars().find(|i| i.0 == "XDG_DATA_HOME") {
+            data
+        } else {
+            //TODO handle $HOME not being set
+            let home = std::env::vars().find(|i| i.0 == "HOME").unwrap().1;
+            format!("{home}/.local/share")
+        }
+    } else if cfg!(target_os = "windows") {
+        std::env::vars().find(|i| i.0 == "LOCALAPPDATA").unwrap().1
+    } else {
+        panic!("Unsupported platform")
+    };
+
+    format!("{base_dir}/lunar-logging/log-{time}.log").into()
 }
 
 fn filter(filter: &str, filter_type: FilterType, data: &str) -> bool {
@@ -295,6 +308,7 @@ impl log::Log for Logger {
                 "\x1b[90m[\x1b[0m{time} {color}{msg_level_str} \x1b[0m{target}\x1b[90m]\x1b[0m {msg}\n"
             )
         } else {
+            #[allow(clippy::collapsible_else_if, clippy::if_not_else)]
             if !cfg!(target_arch = "wasm32") {
                 format!("[{time} {msg_level_str} {target}] {msg}\n")
             } else {
